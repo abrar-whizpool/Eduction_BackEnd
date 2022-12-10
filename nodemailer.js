@@ -2,11 +2,23 @@
 const nodemailer = require('nodemailer');
 const axios = require('axios').default
 const qs = require('qs')
+const {ApplyJobEmail,contactUsHandler} = require('./emailHandler')
 
 
 exports.emailHandler = (async (email,access_token,body) => {
     try {
         console.log("email : ",email )
+        let emailbody =''
+        let emailSubject =''
+        if(body.emailType === 'job'){
+          console.log("job")
+          emailbody = ApplyJobEmail(body)
+          emailSubject = 'Application For Job'
+        }else{
+          emailbody = contactUsHandler(body)
+          emailSubject = 'Contact Us Request'
+        }
+        console.log("HANDLER got here")
         var transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -21,15 +33,9 @@ exports.emailHandler = (async (email,access_token,body) => {
 
         var mailOptions = {
             from: 'yakuzaronn513@gmail.com',
-            to: email ,
-            subject: body?.subject  || '',
-            html:`
-        
-            <h5> name : ${body?.name || ''}  </h5>
-            <h5> email : ${body?.email || ""}  </h5>
-            <h5> message : ${body?.message || ""}  </h5>
-           
-            `
+            to: 'yakuzaronn513@gmail.com' ,
+            subject: emailSubject  || '',
+            html:emailbody
         };
         console.log(mailOptions)
         transporter.sendMail(mailOptions, function (error, info) {
